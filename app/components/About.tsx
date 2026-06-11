@@ -26,7 +26,7 @@ export default function About() {
   const [about, setAbout] = useState<AboutSection | null>({
     title: 'Designing the',
     subtitle: 'future of',
-    content: 'digital craft\nI am a multidisciplinary creative developer based in San Francisco, specializing in crafting premium digital experiences that blur the line between art and technology.\nWith a foundation in both design and engineering, I bring a unique perspective to every project — one that values aesthetic precision as much as technical excellence.',
+    content: 'digital craft\nI am a multidisciplinary creative developer based in Sunyani, Ghana, specializing in software development, UI/UX design, and building premium digital experiences that blend creativity with functionality.\nAs a Full Stack Developer, I craft responsive web applications and robust backend solutions. As a UI/UX Designer, I create intuitive interfaces and brand identities. As a Graphic Designer, I deliver compelling visuals that communicate ideas powerfully.\nWith a foundation in both design and engineering, I bring a unique perspective to every project — one that values aesthetic precision as much as technical excellence.',
   })
   const [stats, setStats] = useState<StatItem[] | null>(defaultStats)
 
