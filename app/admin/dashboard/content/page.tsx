@@ -221,6 +221,15 @@ export default function ContentAdmin() {
   const addStat = () => setAboutStats([...aboutStats, { value: '', label: '' }])
   const removeStat = (index: number) => setAboutStats(aboutStats.filter((_, i) => i !== index))
 
+  const updateEducation = (index: number, field: 'title' | 'school' | 'period', value: string) => {
+    const next = [...resume.education]
+    next[index] = { ...next[index], [field]: value }
+    setResume({ ...resume, education: next })
+  }
+
+  const addEducation = () => setResume({ ...resume, education: [...resume.education, { title: '', school: '', period: '' }] })
+  const removeEducation = (index: number) => setResume({ ...resume, education: resume.education.filter((_, i) => i !== index) })
+
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -328,6 +337,19 @@ export default function ContentAdmin() {
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Certifications (comma separated)</label>
               <input value={(resume.certifications || []).join(', ')} onChange={(e) => setResume({ ...resume, certifications: e.target.value.split(',').map((s) => s.trim()) })} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-xs text-gray-500 dark:text-gray-400 font-medium">Education</h3>
+              {resume.education.map((edu, i) => (
+                <div key={i} className="grid sm:grid-cols-[1fr,1fr,1fr,auto] gap-3 items-center">
+                  <input value={edu.title || ''} onChange={(e) => updateEducation(i, 'title', e.target.value)} placeholder="Degree / Title" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+                  <input value={edu.school || ''} onChange={(e) => updateEducation(i, 'school', e.target.value)} placeholder="School / Institution" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+                  <input value={edu.period || ''} onChange={(e) => updateEducation(i, 'period', e.target.value)} placeholder="Period (e.g. 2019 — 2023)" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+                  <button onClick={() => removeEducation(i)} className="text-xs text-red-500 hover:text-red-600 px-2">Remove</button>
+                </div>
+              ))}
+              <button onClick={addEducation} className="text-xs font-medium text-black dark:text-white hover:underline">+ Add Education</button>
             </div>
 
             <div className="pt-4 border-t border-gray-100 dark:border-white/5">

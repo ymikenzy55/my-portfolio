@@ -51,10 +51,10 @@ const defaultExperiences: Experience[] = [
 function SkillBar({ skill, index }: { skill: Skill; index: number }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
+      initial={{ opacity: 0, x: -10 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
       className="group"
     >
       <div className="flex items-center justify-between mb-3">
@@ -66,7 +66,7 @@ function SkillBar({ skill, index }: { skill: Skill; index: number }) {
           initial={{ width: 0 }}
           whileInView={{ width: `${skill.level}%` }}
           viewport={{ once: true }}
-          transition={{ duration: 1.2, delay: index * 0.1 + 0.2, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.6, delay: index * 0.05 + 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="h-full bg-gradient-to-r from-black/40 to-black/20 dark:from-white/40 dark:to-white/20 rounded-full relative"
         >
           <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-black/60 dark:bg-white/60 rounded-full" />
@@ -78,8 +78,8 @@ function SkillBar({ skill, index }: { skill: Skill; index: number }) {
 
 export default function Skills() {
   const sectionRef = useRef<HTMLElement>(null)
-  const [skills, setSkills] = useState<Skill[] | null>(defaultSkills)
-  const [experiences, setExperiences] = useState<Experience[] | null>(defaultExperiences)
+  const [skills, setSkills] = useState<Skill[] | null>(null)
+  const [experiences, setExperiences] = useState<Experience[] | null>(null)
   const [education, setEducation] = useState<string | null>(null)
 
   const { scrollYProgress } = useScroll({
@@ -90,34 +90,33 @@ export default function Skills() {
   const y = useTransform(scrollYProgress, [0, 1], [50, -50])
 
   useEffect(() => {
-    const fetchData = () => {
-      fetch('/api/settings', { cache: 'no-store' })
-        .then((r) => r.json())
-        .then((data) => {
-          const s = data.settings || {}
-          if (s.skills_json) {
-            try {
-              const parsed = JSON.parse(s.skills_json)
-              if (Array.isArray(parsed) && parsed.length > 0) setSkills(parsed)
-            } catch {}
-          } else {
-            setSkills(defaultSkills)
-          }
-          if (s.experiences_json) {
-            try {
-              const parsed = JSON.parse(s.experiences_json)
-              if (Array.isArray(parsed) && parsed.length > 0) setExperiences(parsed)
-            } catch {}
-          } else {
-            setExperiences(defaultExperiences)
-          }
-        })
-        .catch(() => {})
-    }
-
-    fetchData()
-    const interval = setInterval(fetchData, 3000)
-    return () => clearInterval(interval)
+    fetch('/api/settings', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data) => {
+        const s = data.settings || {}
+        if (s.skills_json) {
+          try {
+            const parsed = JSON.parse(s.skills_json)
+            if (Array.isArray(parsed) && parsed.length > 0) setSkills(parsed)
+            else setSkills(defaultSkills)
+          } catch { setSkills(defaultSkills) }
+        } else {
+          setSkills(defaultSkills)
+        }
+        if (s.experiences_json) {
+          try {
+            const parsed = JSON.parse(s.experiences_json)
+            if (Array.isArray(parsed) && parsed.length > 0) setExperiences(parsed)
+            else setExperiences(defaultExperiences)
+          } catch { setExperiences(defaultExperiences) }
+        } else {
+          setExperiences(defaultExperiences)
+        }
+      })
+      .catch(() => {
+        setSkills(defaultSkills)
+        setExperiences(defaultExperiences)
+      })
   }, [])
 
   if (!skills || !experiences) {
@@ -183,10 +182,10 @@ export default function Skills() {
           {/* Experience */}
           <div className="space-y-8 lg:pt-12">
             <motion.h3
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.3 }}
               className="text-xs tracking-[0.2em] uppercase text-white/40 mb-8"
             >
               Work Experience
@@ -194,10 +193,10 @@ export default function Skills() {
             {experiences.map((exp, i) => (
               <motion.div
                 key={`${exp.period}-${i}`}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.15 }}
+                transition={{ duration: 0.3, delay: i * 0.08 }}
                 className="group relative pl-8 pb-8 border-l border-black/10 dark:border-white/10 last:pb-0"
               >
                 {/* Timeline dot */}

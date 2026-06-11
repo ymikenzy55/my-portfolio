@@ -198,9 +198,18 @@ export default function Contact() {
             >
               <h3 className="text-sm font-medium text-black/80 dark:text-white/80 mb-6">Send a Message</h3>
               {formStatus === 'success' ? (
-                <div className="flex items-center gap-3 text-green-600 dark:text-green-400">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="text-sm">Message sent successfully!</span>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-green-600 dark:text-green-400">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="text-sm">Message sent! Michael will reply to you shortly.</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormStatus('idle')}
+                    className="text-xs text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white underline transition-colors"
+                  >
+                    Send another message
+                  </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">

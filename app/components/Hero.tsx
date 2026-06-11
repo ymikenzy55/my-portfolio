@@ -26,9 +26,24 @@ interface HeroProps {
   onNavigate?: (view: View) => void
 }
 
+const defaultHero: HeroSection = {
+  title: 'EXPLORE MY',
+  subtitle: 'PORTFOLIO',
+  content: 'digital craft\nI am a multidisciplinary creative developer based in San Francisco, specializing in crafting premium digital experiences that blur the line between art and technology.',
+}
+
+const defaultHeroData: HeroData = {
+  name: 'Yeboah Michael',
+  primaryRole: 'Software Developer',
+  secondaryRoles: ['Graphic Designer', 'UI/UX Designer'],
+  fullRoleDescription: 'Software Developer, Graphic & UI/UX Designer',
+  location: 'Sunyani, Ghana',
+  mobileRole: 'Developer & Designer',
+}
+
 export default function Hero({ onNavigate }: HeroProps) {
-  const [hero, setHero] = useState<HeroSection | null>(null)
-  const [heroData, setHeroData] = useState<HeroData | null>(null)
+  const [hero, setHero] = useState<HeroSection>(defaultHero)
+  const [heroData, setHeroData] = useState<HeroData>(defaultHeroData)
 
   useEffect(() => {
     Promise.all([
@@ -38,13 +53,15 @@ export default function Hero({ onNavigate }: HeroProps) {
       .then(([sectionsData, settingsData]) => {
         const sections = sectionsData.sections || []
         const heroSection = sections.find((s: any) => s.key === 'hero')
-        if (heroSection) setHero(heroSection)
+        if (heroSection) {
+          setHero((prev) => ({ ...prev, ...heroSection }))
+        }
 
         const s = settingsData.settings || {}
         if (s.hero_json) {
           try {
             const parsed = JSON.parse(s.hero_json)
-            setHeroData(parsed)
+            setHeroData((prev) => ({ ...prev, ...parsed }))
           } catch {}
         }
       })
