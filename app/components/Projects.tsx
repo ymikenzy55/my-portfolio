@@ -320,6 +320,8 @@ export default function Projects() {
 
   useEffect(() => {
     loadProjects()
+    const interval = setInterval(loadProjects, 3000)
+    return () => clearInterval(interval)
   }, [])
 
   const filteredProjects = activeFilter === 'All'
