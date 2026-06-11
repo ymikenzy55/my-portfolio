@@ -88,6 +88,7 @@ export default function ContentAdmin() {
   const [activeTab, setActiveTab] = useState<'skills' | 'experiences' | 'resume' | 'stats' | 'hero' | 'footer'>('skills')
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [resumeFileUrl, setResumeFileUrl] = useState('')
+  const [resumeFileName, setResumeFileName] = useState('')
   const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
@@ -167,6 +168,9 @@ export default function ContentAdmin() {
     if (s.resume_file_url) {
       setResumeFileUrl(s.resume_file_url)
     }
+    if (s.resume_file_name) {
+      setResumeFileName(s.resume_file_name)
+    }
   }
 
   const save = async () => {
@@ -180,6 +184,7 @@ export default function ContentAdmin() {
       hero_json: JSON.stringify(hero),
       footer_json: JSON.stringify(footer),
       resume_file_url: resumeFileUrl || '',
+      resume_file_name: resumeFileName || '',
     }
     const res = await fetch('/api/settings', {
       method: 'PUT',
@@ -236,11 +241,13 @@ export default function ContentAdmin() {
     setUploading(true)
     const formData = new FormData()
     formData.append('file', file)
+    formData.append('filename', file.name)
     try {
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
       const data = await res.json()
       if (data.url) {
         setResumeFileUrl(data.url)
+        setResumeFileName(data.originalName || file.name)
         setMessage('Resume uploaded. Click Save to store the link.')
       } else {
         setMessage('Upload failed')
@@ -361,7 +368,7 @@ export default function ContentAdmin() {
                 </label>
                 {resumeFileUrl && (
                   <a href="/api/resume" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate max-w-[300px]">
-                    {resumeFileUrl.split('/').pop()}
+                    {resumeFileName || resumeFileUrl.split('/').pop()}
                   </a>
                 )}
               </div>

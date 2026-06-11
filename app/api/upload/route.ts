@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
+    const originalName = formData.get('filename')?.toString() || file.name || 'file'
 
     const mimeType = file.type || ''
     const isImage = mimeType.startsWith('image/')
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
       uploadStream.end(buffer)
     })
 
-    return NextResponse.json({ url: result.secure_url, publicId: result.public_id })
+    return NextResponse.json({ url: result.secure_url, publicId: result.public_id, originalName })
   } catch (err) {
     console.error('Upload error:', err)
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 })

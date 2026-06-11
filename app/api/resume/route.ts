@@ -3,11 +3,12 @@ import { prisma } from '@/app/lib/prisma'
 
 export async function GET() {
   try {
-    const setting = await prisma.siteSetting.findUnique({
-      where: { key: 'resume_file_url' },
-    })
+    const [urlSetting, nameSetting] = await Promise.all([
+      prisma.siteSetting.findUnique({ where: { key: 'resume_file_url' } }),
+      prisma.siteSetting.findUnique({ where: { key: 'resume_file_name' } }),
+    ])
 
-    const url = setting?.value
+    const url = urlSetting?.value
     if (!url) {
       return NextResponse.json({ error: 'No resume uploaded' }, { status: 404 })
     }
@@ -18,11 +19,12 @@ export async function GET() {
     }
 
     const contentType = response.headers.get('content-type') || 'application/octet-stream'
-    const buffer = await response.arrayBuffer()
+    const originalName = nameSetting?.value
+    const fallbackName = url.split('/').pop() || 'resume.pdf'
+    const filename = originalName || fallbackName
 
-    const filename = url.split('/').pop() || 'resume.pdf'
-
-    return new NextResponse(buffer, {
+    // Stream the response body directly to avoid binary buffer corruption
+    return new NextResponse(response.body, {
       headers: {
         'Content-Type': contentType,
         'Content-Disposition': `attachment; filename="${filename}"`,

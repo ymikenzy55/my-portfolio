@@ -46,7 +46,17 @@ export default function About() {
         .then((data) => {
           const sections = data.sections || []
           const aboutSection = sections.find((s: any) => s.key === 'about')
-          if (aboutSection) setAbout(aboutSection)
+          if (aboutSection) {
+            // Patch legacy database content that still says San Francisco
+            const patched = {
+              ...aboutSection,
+              content: (aboutSection.content || '')
+                .replace(/San Francisco/gi, 'Sunyani, Ghana')
+                .replace(/based in the Bay Area/gi, 'based in Sunyani, Ghana')
+                .replace(/multidisciplinary creative developer/gi, 'multidisciplinary creative developer'),
+            }
+            setAbout(patched)
+          }
         })
         .catch(() => {})
 
