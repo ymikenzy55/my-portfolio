@@ -4,54 +4,94 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 interface PageTransitionProps {
   isActive: boolean
+  targetView?: string
 }
 
-const COLS = 8
-const ROWS = 6
-const TOTAL = COLS * ROWS
-
-function getDelay(index: number) {
-  const col = index % COLS
-  const row = Math.floor(index / COLS)
-  const centerCol = (COLS - 1) / 2
-  const centerRow = (ROWS - 1) / 2
-  const distance = Math.abs(col - centerCol) + Math.abs(row - centerRow)
-  return distance * 0.04
+const VIEW_TITLES: Record<string, string> = {
+  hero: 'HOME',
+  about: 'ABOUT',
+  projects: 'PROJECTS',
+  skills: 'SERVICES',
+  contact: 'CONTACT',
+  resume: 'RESUME',
 }
 
-export default function PageTransition({ isActive }: PageTransitionProps) {
+export default function PageTransition({ isActive, targetView }: PageTransitionProps) {
+  const displayTitle = targetView ? (VIEW_TITLES[targetView] ?? targetView.toUpperCase()) : ''
+
   return (
     <AnimatePresence>
       {isActive && (
         <motion.div
+          key="transition"
+          className="fixed inset-0 z-[60] pointer-events-none overflow-hidden flex"
           initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[60] pointer-events-none"
+          transition={{ duration: 0.2 }}
         >
-          <div
-            className="w-full h-full grid"
-            style={{
-              gridTemplateColumns: `repeat(${COLS}, 1fr)`,
-              gridTemplateRows: `repeat(${ROWS}, 1fr)`,
+          {/* Panel 1 — slides from left */}
+          <motion.div
+            className="flex-1 bg-white dark:bg-[#050505] origin-left"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            exit={{ scaleX: 0 }}
+            transition={{
+              duration: 0.35,
+              delay: 0,
+              exit: { duration: 0.3, delay: 0.08 },
+              ease: [0.22, 1, 0.36, 1],
             }}
+          />
+          {/* Panel 2 — slides from right */}
+          <motion.div
+            className="flex-1 bg-white dark:bg-[#050505] origin-right"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            exit={{ scaleX: 0 }}
+            transition={{
+              duration: 0.35,
+              delay: 0.04,
+              exit: { duration: 0.3, delay: 0.04 },
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          />
+          {/* Panel 3 — slides from left */}
+          <motion.div
+            className="flex-1 bg-white dark:bg-[#050505] origin-left"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            exit={{ scaleX: 0 }}
+            transition={{
+              duration: 0.35,
+              delay: 0.08,
+              exit: { duration: 0.3, delay: 0 },
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          />
+
+          {/* Page title — light text only, no card */}
+          <motion.div
+            className="absolute inset-0 flex items-center justify-center z-[61]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
           >
-            {Array.from({ length: TOTAL }).map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{ scale: 0, opacity: 1 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{
-                  duration: 0.5,
-                  delay: isActive ? getDelay(i) : getDelay(TOTAL - 1 - i),
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-                className="bg-white dark:bg-[#050505] origin-center"
-              />
-            ))}
-          </div>
+            <motion.span
+              className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-black dark:text-white"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{
+                duration: 0.35,
+                delay: 0.2,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+            >
+              {displayTitle}
+            </motion.span>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

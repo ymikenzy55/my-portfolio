@@ -9,34 +9,40 @@ interface FooterData {
   name?: string
   tagline?: string
   copyrightName?: string
+  whatsapp?: string
+  phone?: string
+  location?: string
 }
 
 export default function Footer() {
-  const [footer, setFooter] = useState<FooterData>({
-    initials: 'YM',
-    name: 'Yeboah Michael',
-    tagline: 'Crafted with obsession. No templates were harmed.',
-    copyrightName: 'Yeboah Michael',
-  })
+  const [footer, setFooter] = useState<FooterData | null>(null)
 
   useEffect(() => {
-    fetch('/api/settings', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((data) => {
-        const s = data.settings || {}
-        if (s.footer_json) {
-          try {
-            const parsed = JSON.parse(s.footer_json)
-            setFooter((prev) => ({ ...prev, ...parsed }))
-          } catch {}
-        }
-      })
-      .catch(() => {})
+    const fetchData = () => {
+      fetch('/api/settings', { cache: 'no-store' })
+        .then((r) => r.json())
+        .then((data) => {
+          const s = data.settings || {}
+          if (s.footer_json) {
+            try {
+              const parsed = JSON.parse(s.footer_json)
+              setFooter(parsed)
+            } catch {}
+          }
+        })
+        .catch(() => {})
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 3000)
+    return () => clearInterval(interval)
   }, [])
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+
+  if (!footer) return null
 
   return (
     <footer className="relative py-16 section-padding border-t border-black/5 dark:border-white/5">
@@ -50,11 +56,11 @@ export default function Footer() {
             transition={{ duration: 0.6 }}
             className="flex items-center gap-4"
           >
-            <span className="text-sm font-medium tracking-[0.2em] uppercase text-black/60 dark:text-white/60">
+            <span className="text-sm font-medium tracking-[0.2em] uppercase text-black/90 dark:text-white/60">
               {footer.initials}
             </span>
             <span className="w-1 h-1 bg-black/20 dark:bg-white/20 rounded-full" />
-            <span className="text-xs tracking-[0.15em] uppercase text-black/30 dark:text-white/30">
+            <span className="text-xs tracking-[0.15em] uppercase text-black/70 dark:text-white/30">
               {footer.name}
             </span>
           </motion.div>
@@ -65,7 +71,7 @@ export default function Footer() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-xs text-black/20 dark:text-white/20 text-center"
+            className="text-xs text-black/50 dark:text-white/20 text-center"
           >
             {footer.tagline}
           </motion.p>

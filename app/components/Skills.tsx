@@ -78,9 +78,9 @@ function SkillBar({ skill, index }: { skill: Skill; index: number }) {
 
 export default function Skills() {
   const sectionRef = useRef<HTMLElement>(null)
-  const [skills, setSkills] = useState<Skill[]>(defaultSkills)
-  const [experiences, setExperiences] = useState<Experience[]>(defaultExperiences)
-  const [education, setEducation] = useState('BFA Interaction Design — Rhode Island School of Design')
+  const [skills, setSkills] = useState<Skill[] | null>(defaultSkills)
+  const [experiences, setExperiences] = useState<Experience[] | null>(defaultExperiences)
+  const [education, setEducation] = useState<string | null>(null)
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -90,34 +90,50 @@ export default function Skills() {
   const y = useTransform(scrollYProgress, [0, 1], [50, -50])
 
   useEffect(() => {
-    fetch('/api/settings', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((data) => {
-        const s = data.settings || {}
-        if (s.skills_json) {
-          try {
-            const parsed = JSON.parse(s.skills_json)
-            if (Array.isArray(parsed) && parsed.length > 0) setSkills(parsed)
-          } catch {}
-        }
-        if (s.experiences_json) {
-          try {
-            const parsed = JSON.parse(s.experiences_json)
-            if (Array.isArray(parsed) && parsed.length > 0) setExperiences(parsed)
-          } catch {}
-        }
-        if (s.resume_json) {
-          try {
-            const parsed = JSON.parse(s.resume_json)
-            if (parsed.education && parsed.education.length > 0) {
-              const edu = parsed.education[0]
-              setEducation(`${edu.title} — ${edu.school}`)
-            }
-          } catch {}
-        }
-      })
-      .catch(() => {})
+    const fetchData = () => {
+      fetch('/api/settings', { cache: 'no-store' })
+        .then((r) => r.json())
+        .then((data) => {
+          const s = data.settings || {}
+          if (s.skills_json) {
+            try {
+              const parsed = JSON.parse(s.skills_json)
+              if (Array.isArray(parsed) && parsed.length > 0) setSkills(parsed)
+            } catch {}
+          } else {
+            setSkills(defaultSkills)
+          }
+          if (s.experiences_json) {
+            try {
+              const parsed = JSON.parse(s.experiences_json)
+              if (Array.isArray(parsed) && parsed.length > 0) setExperiences(parsed)
+            } catch {}
+          } else {
+            setExperiences(defaultExperiences)
+          }
+        })
+        .catch(() => {})
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 3000)
+    return () => clearInterval(interval)
   }, [])
+
+  if (!skills || !experiences) {
+    return (
+      <section ref={sectionRef} id="skills" className="relative py-32 md:py-48 section-padding overflow-hidden min-h-screen">
+        <div className="max-w-7xl mx-auto animate-pulse">
+          <div className="h-4 w-24 bg-black/5 dark:bg-white/5 rounded mb-16" />
+          <div className="h-12 w-1/2 bg-black/5 dark:bg-white/5 rounded mb-20" />
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24">
+            <div className="h-64 w-full bg-black/5 dark:bg-white/5 rounded-2xl" />
+            <div className="h-64 w-full bg-black/5 dark:bg-white/5 rounded-2xl" />
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section ref={sectionRef} id="skills" className="relative py-32 md:py-48 section-padding overflow-hidden">
@@ -132,7 +148,7 @@ export default function Skills() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.3 }}
           className="mb-20"
         >
           <span className="inline-flex items-center gap-3 text-xs tracking-[0.3em] uppercase text-gray-500 dark:text-gray-400 mb-6">

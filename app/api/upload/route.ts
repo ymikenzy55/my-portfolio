@@ -33,9 +33,14 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
+    const mimeType = file.type || ''
+    const isImage = mimeType.startsWith('image/')
+    const isVideo = mimeType.startsWith('video/')
+    const resourceType = isImage ? 'image' : (isVideo ? 'video' : 'raw')
+
     const result: any = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: 'portfolio', resource_type: 'auto' },
+        { folder: 'portfolio', resource_type: resourceType },
         (error, result) => {
           if (error) reject(error)
           else resolve(result)

@@ -18,6 +18,7 @@ import GlobalStackNav, { type View } from './components/GlobalStackNav'
 export default function Home() {
   const [activeView, setActiveView] = useState<View>('hero')
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [targetView, setTargetView] = useState<View>('hero')
 
   useEffect(() => {
     try {
@@ -31,12 +32,13 @@ export default function Home() {
 
   const navigateTo = useCallback((view: View) => {
     if (view === activeView) return
+    setTargetView(view)
     setIsTransitioning(true)
     setTimeout(() => {
       setActiveView(view)
       window.scrollTo({ top: 0, behavior: 'instant' })
-      setTimeout(() => setIsTransitioning(false), 700)
-    }, 600)
+      setTimeout(() => setIsTransitioning(false), 550)
+    }, 480)
   }, [activeView])
 
   return (
@@ -46,7 +48,7 @@ export default function Home() {
       <Navigation onNavigate={navigateTo} />
 
       <main className="relative">
-        <PageTransition isActive={isTransitioning} />
+        <PageTransition isActive={isTransitioning} targetView={targetView} />
         <AnimatePresence mode="wait">
           {activeView === 'hero' && (
             <motion.div
@@ -54,7 +56,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.15 }}
             >
               <Hero onNavigate={navigateTo} />
             </motion.div>
@@ -65,7 +67,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.15 }}
             >
               <About />
             </motion.div>
@@ -76,7 +78,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.15 }}
             >
               <Projects />
             </motion.div>
@@ -87,7 +89,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.15 }}
             >
               <Skills />
             </motion.div>
@@ -98,7 +100,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.15 }}
             >
               <Contact />
             </motion.div>
@@ -109,7 +111,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.15 }}
             >
               <Resume />
             </motion.div>
@@ -117,7 +119,7 @@ export default function Home() {
         </AnimatePresence>
       </main>
 
-      {activeView !== 'hero' && <Footer />}
+      {activeView !== 'hero' && !isTransitioning && <Footer />}
       <GlobalStackNav activeView={activeView} onNavigate={navigateTo} />
     </>
   )

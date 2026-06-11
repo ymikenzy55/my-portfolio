@@ -22,6 +22,7 @@ export default function Contact() {
   const [formStatus, setFormStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [formError, setFormError] = useState('')
   const [socials, setSocials] = useState<SocialLink[]>([])
+  const [contactInfo, setContactInfo] = useState({ whatsapp: '', phone: '', location: '' })
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -32,10 +33,27 @@ export default function Contact() {
   const scale = useTransform(scrollYProgress, [0, 0.5], [0.95, 1])
 
   useEffect(() => {
-    fetch('/api/social-links', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((data) => setSocials(data.links || []))
-      .catch(() => setSocials([]))
+    Promise.all([
+      fetch('/api/social-links', { cache: 'no-store' }).then((r) => r.json()),
+      fetch('/api/settings', { cache: 'no-store' }).then((r) => r.json()),
+    ])
+      .then(([socialsData, settingsData]) => {
+        setSocials(socialsData.links || [])
+        const s = settingsData.settings || {}
+        if (s.footer_json) {
+          try {
+            const parsed = JSON.parse(s.footer_json)
+            setContactInfo({
+              whatsapp: parsed.whatsapp || '',
+              phone: parsed.phone || '',
+              location: parsed.location || '',
+            })
+          } catch {}
+        }
+      })
+      .catch(() => {
+        setSocials([])
+      })
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,7 +96,7 @@ export default function Contact() {
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           >
             <span className="inline-flex items-center gap-3 text-xs tracking-[0.3em] uppercase text-gray-500 dark:text-gray-400 mb-8">
               <span className="w-8 h-[1px] bg-black/20 dark:bg-white/30" />
@@ -98,7 +116,9 @@ export default function Contact() {
             </p>
 
             <motion.a
-              href="mailto:hello@alexmorgan.dev"
+              href={contactInfo.whatsapp ? `https://wa.me/${contactInfo.whatsapp.replace(/[^0-9]/g, '')}` : 'mailto:yeboahmichael@gmail.com'}
+              target="_blank"
+              rel="noopener noreferrer"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="group inline-flex items-center gap-4 px-10 py-5 bg-black dark:bg-white text-white dark:text-black text-xs font-semibold tracking-[0.15em] uppercase rounded-full overflow-hidden transition-all duration-500 hover:shadow-[0_0_60px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_0_60px_rgba(255,255,255,0.15)]"
@@ -120,33 +140,36 @@ export default function Contact() {
             className="space-y-6"
           >
             {/* Location card */}
-            <motion.div
+            <motion.a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contactInfo.location)}`}
+              target="_blank"
+              rel="noopener noreferrer"
               initial={{ opacity: 0, x: 40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="glass-card p-8 rounded-2xl group hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors duration-500"
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="glass-card p-8 rounded-2xl group hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors duration-500 block"
             >
               <div className="flex items-start gap-6">
                 <div className="w-12 h-12 glass rounded-xl flex items-center justify-center shrink-0">
                   <MapPin className="w-5 h-5 text-black/50 dark:text-white/50" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-black/80 dark:text-white/80 mb-2">Location</h3>
+                  <h3 className="text-sm font-medium text-black/80 dark:text:white/80 mb-2">Location</h3>
                   <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                    Sunyani, Ghana<br />
+                    {contactInfo.location}<br />
                     Available for remote work worldwide
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </motion.a>
 
             {/* Email card */}
             <motion.div
               initial={{ opacity: 0, x: 40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.35, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
               className="glass-card p-8 rounded-2xl group hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors duration-500"
             >
               <div className="flex items-start gap-6">
@@ -170,7 +193,7 @@ export default function Contact() {
               initial={{ opacity: 0, x: 40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.35, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
               className="glass-card p-8 rounded-2xl"
             >
               <h3 className="text-sm font-medium text-black/80 dark:text-white/80 mb-6">Send a Message</h3>

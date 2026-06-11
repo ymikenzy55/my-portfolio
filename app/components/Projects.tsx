@@ -37,8 +37,13 @@ function TiltCard({ project, index }: { project: Project; index: number }) {
     setIsHovered(false)
   }
 
-  const CardWrapper = project.link ? 'a' : 'div'
-  const cardProps = project.link ? { href: project.link, target: '_blank', rel: 'noopener noreferrer' } : {}
+  const handleCardClick = () => {
+    if (project.link) {
+      window.open(project.link, '_blank', 'noopener,noreferrer')
+    } else if (project.liveLink) {
+      window.open(project.liveLink, '_blank', 'noopener,noreferrer')
+    }
+  }
 
   return (
     <motion.div
@@ -50,9 +55,9 @@ function TiltCard({ project, index }: { project: Project; index: number }) {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
+      onClick={handleCardClick}
       className="group relative perspective-1000 cursor-pointer"
     >
-      <CardWrapper {...cardProps} className="block">
       <motion.div
         animate={{
           rotateX: tilt.x,
@@ -102,9 +107,17 @@ function TiltCard({ project, index }: { project: Project; index: number }) {
                 className="w-36 h-24 sm:w-44 sm:h-28 md:w-64 md:h-40 rounded-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 flex items-center justify-center overflow-hidden"
               >
                 {project.imageUrl && project.imageUrl.startsWith('http') ? (
-                  <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+                  <a
+                    href={project.imageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full h-full block cursor-pointer"
+                  >
+                    <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+                  </a>
                 ) : (
-                  <span className="font-display text-xl sm:text-2xl md:text-3xl text-black/20 dark:text-white/20 tracking-wider">
+                  <span className="font-display text-xl sm:text-2xl md:text-3xl text-black/20 dark:text:white/20 tracking-wider">
                     {project.title}
                   </span>
                 )}
@@ -117,7 +130,7 @@ function TiltCard({ project, index }: { project: Project; index: number }) {
                 {project.title}
               </h3>
               <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm leading-relaxed max-w-sm">
-                {project.description}
+                {project.description.replace(/\\n/g, ' ').replace(/\n+/g, ' ').trim()}
               </p>
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {project.tags.map((tag) => (
@@ -129,16 +142,16 @@ function TiltCard({ project, index }: { project: Project; index: number }) {
                   </span>
                 ))}
               </div>
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-3 mt-3">
                 {project.githubLink && (
                   <a
                     href={project.githubLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1.5 text-[10px] font-medium text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-black/70 dark:text-white/70 hover:text-black dark:hover:text-white bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-all"
                   >
-                    <Github className="w-3 h-3" />
+                    <Github className="w-4 h-4" />
                     Source
                   </a>
                 )}
@@ -148,9 +161,9 @@ function TiltCard({ project, index }: { project: Project; index: number }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1.5 text-[10px] font-medium text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-black/70 dark:text-white/70 hover:text-black dark:hover:text-white bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-all"
                   >
-                    <Globe className="w-3 h-3" />
+                    <Globe className="w-4 h-4" />
                     Live
                   </a>
                 )}
@@ -165,7 +178,6 @@ function TiltCard({ project, index }: { project: Project; index: number }) {
           <div className="absolute bottom-4 right-4 w-4 h-4 border-r border-b border-black/10 dark:border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </div>
       </motion.div>
-      </CardWrapper>
     </motion.div>
   )
 }
@@ -174,6 +186,7 @@ export default function Projects() {
   const [activeFilter, setActiveFilter] = useState('All')
   const [projects, setProjects] = useState<Project[]>([])
   const [filters, setFilters] = useState<string[]>(['All'])
+  const [loading, setLoading] = useState(true)
   const sectionRef = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -184,26 +197,27 @@ export default function Projects() {
   const headerOpacity = useTransform(scrollYProgress, [0, 0.2], [0, 1])
 
   const loadProjects = () => {
+    setLoading(true)
     fetch('/api/projects', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => {
         const list: Project[] = data.projects || []
-        setProjects((prev) => {
-          if (JSON.stringify(prev) !== JSON.stringify(list)) {
-            const cats = Array.from(new Set(list.map((p: Project) => p.category)))
-            setFilters(['All', ...cats])
-            return list
-          }
-          return prev
-        })
+        setProjects(list)
+        const cats = Array.from(
+          new Set(list.map((p: Project) => p.category?.trim()).filter(Boolean))
+        )
+        setFilters(['All', ...cats])
+        setLoading(false)
       })
-      .catch(() => setProjects([]))
+      .catch(() => {
+        setProjects([])
+        setFilters(['All'])
+        setLoading(false)
+      })
   }
 
   useEffect(() => {
     loadProjects()
-    const interval = setInterval(loadProjects, 10000)
-    return () => clearInterval(interval)
   }, [])
 
   const filteredProjects = activeFilter === 'All'
@@ -289,7 +303,20 @@ export default function Projects() {
           layout
           className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {filteredProjects.map((project, index) => (
+          {loading && Array.from({ length: 3 }).map((_, i) => (
+            <div key={`skeleton-${i}`} className="glass-card rounded-2xl overflow-hidden h-[280px] sm:h-[320px] md:h-[380px] animate-pulse p-5 sm:p-6 md:p-8 flex flex-col justify-between">
+              <div className="h-5 w-16 bg-black/5 dark:bg-white/5 rounded-full" />
+              <div className="h-28 w-full bg-black/5 dark:bg-white/5 rounded-xl" />
+              <div className="space-y-2">
+                <div className="h-5 w-2/3 bg-black/5 dark:bg-white/5 rounded" />
+                <div className="h-3 w-full bg-black/5 dark:bg-white/5 rounded" />
+                <div className="flex gap-2">
+                  <div className="h-5 w-12 bg-black/5 dark:bg-white/5 rounded-full" />
+                </div>
+              </div>
+            </div>
+          ))}
+          {!loading && filteredProjects.map((project, index) => (
             <TiltCard key={project.id} project={project} index={index} />
           ))}
         </motion.div>
@@ -299,7 +326,7 @@ export default function Projects() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.35 }}
           className="mt-20 flex justify-center"
         >
           <a
@@ -314,3 +341,4 @@ export default function Projects() {
     </section>
   )
 }
+

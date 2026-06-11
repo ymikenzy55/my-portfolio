@@ -23,11 +23,11 @@ async function main() {
   })
 
   const defaultSections = [
-    { key: 'hero', title: 'Yeboah Michael', subtitle: 'Software Developer', content: '', order: 0 },
-    { key: 'about', title: 'About Me', subtitle: '', content: '', order: 1 },
-    { key: 'skills', title: 'Services', subtitle: '', content: '', order: 2 },
+    { key: 'hero', title: 'Yeboah Michael', subtitle: 'Software Developer', content: 'Building digital experiences that matter — from concept to deployment with precision and passion.', order: 0 },
+    { key: 'about', title: 'Designing the', subtitle: 'future of', content: 'digital craft\nI am a multidisciplinary creative developer based in San Francisco, specializing in crafting premium digital experiences that blur the line between art and technology.\nWith a foundation in both design and engineering, I bring a unique perspective to every project — one that values aesthetic precision as much as technical excellence. My work has been recognized by Awwwards, CSS Design Awards, and featured in publications worldwide.', order: 1 },
+    { key: 'skills', title: 'Services', subtitle: 'What I Offer', content: 'From frontend architecture to motion design, I deliver end-to-end solutions that scale.', order: 2 },
     { key: 'projects', title: 'Projects', subtitle: '', content: '', order: 3 },
-    { key: 'resume', title: 'Resume', subtitle: '', content: '', order: 4 },
+    { key: 'resume', title: 'Resume', subtitle: 'My Professional Journey', content: 'A passionate software developer and designer with a track record of delivering exceptional digital products.', order: 4 },
     { key: 'contact', title: 'Contact', subtitle: '', content: '', order: 5 },
   ]
 
@@ -77,6 +77,21 @@ async function main() {
       where: { slug: p.slug },
       update: {},
       create: p,
+    })
+  }
+
+  const defaultSocialLinks = [
+    { name: 'Gmail', url: 'mailto:yeboahmichael977@gmail.com', icon: 'Mail', order: 0, isActive: true },
+    { name: 'LinkedIn', url: 'https://linkedin.com/in/yeboahmichael', icon: 'Linkedin', order: 1, isActive: true },
+    { name: 'GitHub', url: 'https://github.com/yeboahmichael', icon: 'Github', order: 2, isActive: true },
+    { name: 'WhatsApp', url: 'https://wa.me/233XXXXXXXXX', icon: 'WhatsApp', order: 3, isActive: true },
+  ]
+
+  for (const sl of defaultSocialLinks) {
+    await prisma.socialLink.upsert({
+      where: { name: sl.name },
+      update: {},
+      create: sl,
     })
   }
 

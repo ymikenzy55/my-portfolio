@@ -17,6 +17,8 @@ interface ExperienceItem {
 }
 
 interface ResumeData {
+  name: string
+  primaryRole: string
   email: string
   phone: string
   location: string
@@ -42,12 +44,17 @@ interface FooterData {
   name: string
   tagline: string
   copyrightName: string
+  whatsapp: string
+  phone: string
+  location: string
 }
 
 export default function ContentAdmin() {
   const [skills, setSkills] = useState<SkillItem[]>([])
   const [experiences, setExperiences] = useState<ExperienceItem[]>([])
   const [resume, setResume] = useState<ResumeData>({
+    name: 'Yeboah Michael',
+    primaryRole: 'Software Developer & Designer',
     email: '',
     phone: '',
     location: '',
@@ -72,11 +79,16 @@ export default function ContentAdmin() {
     name: 'Yeboah Michael',
     tagline: 'Crafted with obsession. No templates were harmed.',
     copyrightName: 'Yeboah Michael',
+    whatsapp: '',
+    phone: '',
+    location: 'Sunyani, Ghana',
   })
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'skills' | 'experiences' | 'resume' | 'stats' | 'hero' | 'footer'>('skills')
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [resumeFileUrl, setResumeFileUrl] = useState('')
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     load()
@@ -116,6 +128,8 @@ export default function ContentAdmin() {
       try { setResume(JSON.parse(s.resume_json)) } catch {}
     } else {
       setResume({
+        name: 'Yeboah Michael',
+        primaryRole: 'Software Developer & Designer',
         email: 'yeboahmichael@example.com',
         phone: '+233 XX XXX XXXX',
         location: 'Sunyani, Ghana',
@@ -149,6 +163,10 @@ export default function ContentAdmin() {
     if (s.footer_json) {
       try { setFooter((prev) => ({ ...prev, ...JSON.parse(s.footer_json) })) } catch {}
     }
+
+    if (s.resume_file_url) {
+      setResumeFileUrl(s.resume_file_url)
+    }
   }
 
   const save = async () => {
@@ -161,6 +179,7 @@ export default function ContentAdmin() {
       about_stats: JSON.stringify(aboutStats),
       hero_json: JSON.stringify(hero),
       footer_json: JSON.stringify(footer),
+      resume_file_url: resumeFileUrl || '',
     }
     const res = await fetch('/api/settings', {
       method: 'PUT',
@@ -202,6 +221,28 @@ export default function ContentAdmin() {
   const addStat = () => setAboutStats([...aboutStats, { value: '', label: '' }])
   const removeStat = (index: number) => setAboutStats(aboutStats.filter((_, i) => i !== index))
 
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    const formData = new FormData()
+    formData.append('file', file)
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (data.url) {
+        setResumeFileUrl(data.url)
+        setMessage('Resume uploaded. Click Save to store the link.')
+      } else {
+        setMessage('Upload failed')
+      }
+    } catch {
+      setMessage('Upload failed')
+    }
+    setUploading(false)
+    e.target.value = ''
+  }
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-black dark:text-white mb-2">Manage Content</h1>
@@ -235,9 +276,9 @@ export default function ContentAdmin() {
             <h2 className="text-sm font-bold uppercase tracking-wider text-black dark:text-white">Technical Skills</h2>
             {skills.map((skill, i) => (
               <div key={i} className="grid sm:grid-cols-[1fr,1fr,1fr,auto] gap-3 items-center">
-                <input value={skill.name} onChange={(e) => updateSkill(i, 'name', e.target.value)} placeholder="Skill name" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
-                <input value={skill.category} onChange={(e) => updateSkill(i, 'category', e.target.value)} placeholder="Category" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
-                <input type="number" value={skill.level} onChange={(e) => updateSkill(i, 'level', Number(e.target.value))} placeholder="Level (0-100)" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+                <input value={skill.name || ''} onChange={(e) => updateSkill(i, 'name', e.target.value)} placeholder="Skill name" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+                <input value={skill.category || ''} onChange={(e) => updateSkill(i, 'category', e.target.value)} placeholder="Category" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+                <input type="number" value={skill.level ?? 0} onChange={(e) => updateSkill(i, 'level', Number(e.target.value))} placeholder="Level (0-100)" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
                 <button onClick={() => removeSkill(i)} className="text-xs text-red-500 hover:text-red-600 px-2">Remove</button>
               </div>
             ))}
@@ -251,11 +292,11 @@ export default function ContentAdmin() {
             {experiences.map((exp, i) => (
               <div key={i} className="space-y-2 p-4 rounded-xl border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/[0.02]">
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <input value={exp.period} onChange={(e) => updateExperience(i, 'period', e.target.value)} placeholder="Period (e.g. 2022 — Present)" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
-                  <input value={exp.company} onChange={(e) => updateExperience(i, 'company', e.target.value)} placeholder="Company" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+                  <input value={exp.period || ''} onChange={(e) => updateExperience(i, 'period', e.target.value)} placeholder="Period (e.g. 2022 — Present)" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+                  <input value={exp.company || ''} onChange={(e) => updateExperience(i, 'company', e.target.value)} placeholder="Company" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
                 </div>
-                <input value={exp.role} onChange={(e) => updateExperience(i, 'role', e.target.value)} placeholder="Role" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
-                <textarea value={exp.description} onChange={(e) => updateExperience(i, 'description', e.target.value)} placeholder="Description" rows={2} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+                <input value={exp.role || ''} onChange={(e) => updateExperience(i, 'role', e.target.value)} placeholder="Role" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+                <textarea value={exp.description || ''} onChange={(e) => updateExperience(i, 'description', e.target.value)} placeholder="Description" rows={2} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
                 <button onClick={() => removeExperience(i)} className="text-xs text-red-500 hover:text-red-600">Remove</button>
               </div>
             ))}
@@ -266,23 +307,43 @@ export default function ContentAdmin() {
         {activeTab === 'resume' && (
           <div className="space-y-4">
             <h2 className="text-sm font-bold uppercase tracking-wider text-black dark:text-white">Resume Data</h2>
-            <div className="grid sm:grid-cols-3 gap-4">
-              <input value={resume.email} onChange={(e) => setResume({ ...resume, email: e.target.value })} placeholder="Email" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
-              <input value={resume.phone} onChange={(e) => setResume({ ...resume, phone: e.target.value })} placeholder="Phone" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
-              <input value={resume.location} onChange={(e) => setResume({ ...resume, location: e.target.value })} placeholder="Location" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+            <div className="grid sm:grid-cols-2 gap-4">
+              <input value={resume.name || ''} onChange={(e) => setResume({ ...resume, name: e.target.value })} placeholder="Name" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+              <input value={resume.primaryRole || ''} onChange={(e) => setResume({ ...resume, primaryRole: e.target.value })} placeholder="Primary Role" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
             </div>
-            <textarea value={resume.summary} onChange={(e) => setResume({ ...resume, summary: e.target.value })} placeholder="Professional Summary" rows={3} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+            <div className="grid sm:grid-cols-3 gap-4">
+              <input value={resume.email || ''} onChange={(e) => setResume({ ...resume, email: e.target.value })} placeholder="Email" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+              <input value={resume.phone || ''} onChange={(e) => setResume({ ...resume, phone: e.target.value })} placeholder="Phone" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+              <input value={resume.location || ''} onChange={(e) => setResume({ ...resume, location: e.target.value })} placeholder="Location" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+            </div>
+            <textarea value={resume.summary || ''} onChange={(e) => setResume({ ...resume, summary: e.target.value })} placeholder="Professional Summary" rows={3} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Skills (comma separated)</label>
-              <input value={resume.skills.join(', ')} onChange={(e) => setResume({ ...resume, skills: e.target.value.split(',').map((s) => s.trim()) })} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+              <input value={(resume.skills || []).join(', ')} onChange={(e) => setResume({ ...resume, skills: e.target.value.split(',').map((s) => s.trim()) })} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
             </div>
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Languages (comma separated)</label>
-              <input value={resume.languages.join(', ')} onChange={(e) => setResume({ ...resume, languages: e.target.value.split(',').map((s) => s.trim()) })} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+              <input value={(resume.languages || []).join(', ')} onChange={(e) => setResume({ ...resume, languages: e.target.value.split(',').map((s) => s.trim()) })} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
             </div>
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Certifications (comma separated)</label>
-              <input value={resume.certifications.join(', ')} onChange={(e) => setResume({ ...resume, certifications: e.target.value.split(',').map((s) => s.trim()) })} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+              <input value={(resume.certifications || []).join(', ')} onChange={(e) => setResume({ ...resume, certifications: e.target.value.split(',').map((s) => s.trim()) })} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+            </div>
+
+            <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-black dark:text-white mb-3">Resume File</h3>
+              <div className="flex items-center gap-4">
+                <label className="relative cursor-pointer px-4 py-2 rounded-lg bg-black dark:bg-white text-white dark:text-black text-sm font-medium hover:opacity-90 transition-opacity">
+                  {uploading ? 'Uploading...' : 'Upload PDF / DOCX'}
+                  <input type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} className="sr-only" />
+                </label>
+                {resumeFileUrl && (
+                  <a href="/api/resume" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate max-w-[300px]">
+                    {resumeFileUrl.split('/').pop()}
+                  </a>
+                )}
+              </div>
+              <p className="text-xs text-gray-400 mt-2">Upload a PDF or DOCX file. Users will see a download button on the resume page.</p>
             </div>
           </div>
         )}
@@ -292,8 +353,8 @@ export default function ContentAdmin() {
             <h2 className="text-sm font-bold uppercase tracking-wider text-black dark:text-white">About Stats</h2>
             {aboutStats.map((stat, i) => (
               <div key={i} className="grid sm:grid-cols-[1fr,1fr,auto] gap-3 items-center">
-                <input value={stat.value} onChange={(e) => updateStat(i, 'value', e.target.value)} placeholder="Value (e.g. 8+)" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
-                <input value={stat.label} onChange={(e) => updateStat(i, 'label', e.target.value)} placeholder="Label (e.g. Years Experience)" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+                <input value={stat.value || ''} onChange={(e) => updateStat(i, 'value', e.target.value)} placeholder="Value (e.g. 8+)" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+                <input value={stat.label || ''} onChange={(e) => updateStat(i, 'label', e.target.value)} placeholder="Label (e.g. Years Experience)" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
                 <button onClick={() => removeStat(i)} className="text-xs text-red-500 hover:text-red-600 px-2">Remove</button>
               </div>
             ))}
@@ -305,15 +366,15 @@ export default function ContentAdmin() {
           <div className="space-y-4">
             <h2 className="text-sm font-bold uppercase tracking-wider text-black dark:text-white">Hero Section</h2>
             <div className="grid sm:grid-cols-2 gap-4">
-              <input value={hero.name} onChange={(e) => setHero({ ...hero, name: e.target.value })} placeholder="Name" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
-              <input value={hero.primaryRole} onChange={(e) => setHero({ ...hero, primaryRole: e.target.value })} placeholder="Primary Role" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+              <input value={hero.name || ''} onChange={(e) => setHero({ ...hero, name: e.target.value })} placeholder="Name" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+              <input value={hero.primaryRole || ''} onChange={(e) => setHero({ ...hero, primaryRole: e.target.value })} placeholder="Primary Role" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
             </div>
-            <input value={hero.fullRoleDescription} onChange={(e) => setHero({ ...hero, fullRoleDescription: e.target.value })} placeholder="Full Role Description" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
-            <input value={hero.location} onChange={(e) => setHero({ ...hero, location: e.target.value })} placeholder="Location" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
-            <input value={hero.mobileRole} onChange={(e) => setHero({ ...hero, mobileRole: e.target.value })} placeholder="Mobile Role (short)" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+            <input value={hero.fullRoleDescription || ''} onChange={(e) => setHero({ ...hero, fullRoleDescription: e.target.value })} placeholder="Full Role Description" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+            <input value={hero.location || ''} onChange={(e) => setHero({ ...hero, location: e.target.value })} placeholder="Location" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+            <input value={hero.mobileRole || ''} onChange={(e) => setHero({ ...hero, mobileRole: e.target.value })} placeholder="Mobile Role (short)" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Secondary Roles (comma separated)</label>
-              <input value={hero.secondaryRoles.join(', ')} onChange={(e) => setHero({ ...hero, secondaryRoles: e.target.value.split(',').map((s) => s.trim()) })} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+              <input value={(hero.secondaryRoles || []).join(', ')} onChange={(e) => setHero({ ...hero, secondaryRoles: e.target.value.split(',').map((s) => s.trim()) })} className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
             </div>
           </div>
         )}
@@ -322,11 +383,16 @@ export default function ContentAdmin() {
           <div className="space-y-4">
             <h2 className="text-sm font-bold uppercase tracking-wider text-black dark:text-white">Footer</h2>
             <div className="grid sm:grid-cols-2 gap-4">
-              <input value={footer.initials} onChange={(e) => setFooter({ ...footer, initials: e.target.value })} placeholder="Initials (e.g. YM)" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
-              <input value={footer.name} onChange={(e) => setFooter({ ...footer, name: e.target.value })} placeholder="Name" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+              <input value={footer.initials || ''} onChange={(e) => setFooter({ ...footer, initials: e.target.value })} placeholder="Initials (e.g. YM)" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+              <input value={footer.name || ''} onChange={(e) => setFooter({ ...footer, name: e.target.value })} placeholder="Name" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
             </div>
-            <input value={footer.tagline} onChange={(e) => setFooter({ ...footer, tagline: e.target.value })} placeholder="Tagline" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
-            <input value={footer.copyrightName} onChange={(e) => setFooter({ ...footer, copyrightName: e.target.value })} placeholder="Copyright Name" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+            <input value={footer.tagline || ''} onChange={(e) => setFooter({ ...footer, tagline: e.target.value })} placeholder="Tagline" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+            <input value={footer.copyrightName || ''} onChange={(e) => setFooter({ ...footer, copyrightName: e.target.value })} placeholder="Copyright Name" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+            <div className="grid sm:grid-cols-2 gap-4">
+              <input value={footer.whatsapp || ''} onChange={(e) => setFooter({ ...footer, whatsapp: e.target.value })} placeholder="WhatsApp Number (e.g. +233XXXXXXXXX)" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+              <input value={footer.phone || ''} onChange={(e) => setFooter({ ...footer, phone: e.target.value })} placeholder="Phone Number (e.g. +233XXXXXXXXX)" className="px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
+            </div>
+            <input value={footer.location || ''} onChange={(e) => setFooter({ ...footer, location: e.target.value })} placeholder="Location (e.g. Sunyani, Ghana)" className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] text-black dark:text-white text-sm" />
           </div>
         )}
       </div>

@@ -5,6 +5,8 @@ import { motion } from 'framer-motion'
 import { Download, Mail, MapPin, Phone, Briefcase, GraduationCap, Award } from 'lucide-react'
 
 interface ResumeData {
+  name?: string
+  primaryRole?: string
   email: string
   phone: string
   location: string
@@ -17,6 +19,8 @@ interface ResumeData {
 }
 
 const defaultResume: ResumeData = {
+  name: 'Yeboah Michael',
+  primaryRole: 'Software Developer & Designer',
   email: 'yeboahmichael@example.com',
   phone: '+233 XX XXX XXXX',
   location: 'Sunyani, Ghana',
@@ -32,7 +36,7 @@ const defaultResume: ResumeData = {
 }
 
 export default function Resume() {
-  const [resume, setResume] = useState<ResumeData>(defaultResume)
+  const [resume, setResume] = useState<ResumeData | null>(defaultResume)
 
   useEffect(() => {
     fetch('/api/settings', { cache: 'no-store' })
@@ -42,12 +46,35 @@ export default function Resume() {
         if (s.resume_json) {
           try {
             const parsed = JSON.parse(s.resume_json)
-            setResume({ ...defaultResume, ...parsed })
+            setResume(parsed)
           } catch {}
+        } else {
+          setResume(defaultResume)
         }
       })
       .catch(() => {})
   }, [])
+
+  if (!resume) {
+    return (
+      <section className="relative min-h-screen bg-white dark:bg-[#050505] pt-28 pb-20 overflow-hidden">
+        <div className="max-w-4xl mx-auto px-6 md:px-10 animate-pulse">
+          <div className="h-10 w-32 bg-black/5 dark:bg-white/5 rounded mx-auto mb-4" />
+          <div className="h-4 w-64 bg-black/5 dark:bg-white/5 rounded mx-auto mb-12" />
+          <div className="grid md:grid-cols-[1fr_2fr] gap-12">
+            <div className="space-y-8">
+              <div className="h-24 w-full bg-black/5 dark:bg-white/5 rounded" />
+              <div className="h-32 w-full bg-black/5 dark:bg-white/5 rounded" />
+            </div>
+            <div className="space-y-8">
+              <div className="h-24 w-full bg-black/5 dark:bg-white/5 rounded" />
+              <div className="h-40 w-full bg-black/5 dark:bg-white/5 rounded" />
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="relative min-h-screen bg-white dark:bg-[#050505] pt-28 pb-20 overflow-hidden">
@@ -56,14 +83,14 @@ export default function Resume() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.25 }}
           className="text-center mb-12"
         >
           <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight text-black dark:text-white mb-3">
             Resume
           </h1>
           <p className="text-sm text-black/40 dark:text-white/40 tracking-wide">
-            YEHOAH MICHAEL — SOFTWARE DEVELOPER & DESIGNER
+            {(resume?.name || 'YEHOAH MICHAEL').toUpperCase()} — {(resume?.primaryRole || 'SOFTWARE DEVELOPER & DESIGNER').toUpperCase()}
           </p>
         </motion.div>
 
@@ -71,12 +98,11 @@ export default function Resume() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+          transition={{ duration: 0.3, delay: 0.05 }}
           className="flex justify-center mb-16"
         >
           <a
-            href="/resume.pdf"
-            download
+            href="/api/resume"
             className="group inline-flex items-center gap-3 px-8 py-4 bg-black dark:bg-white text-white dark:text-black rounded-full text-sm font-medium tracking-wide hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300"
           >
             <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
@@ -89,7 +115,7 @@ export default function Resume() {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
             className="space-y-8"
           >
             {/* Contact */}
@@ -147,7 +173,7 @@ export default function Resume() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
             className="space-y-10"
           >
             {/* Summary */}

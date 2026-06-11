@@ -23,8 +23,12 @@ const defaultStats: StatItem[] = [
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null)
-  const [about, setAbout] = useState<AboutSection | null>(null)
-  const [stats, setStats] = useState<StatItem[]>(defaultStats)
+  const [about, setAbout] = useState<AboutSection | null>({
+    title: 'Designing the',
+    subtitle: 'future of',
+    content: 'digital craft\nI am a multidisciplinary creative developer based in San Francisco, specializing in crafting premium digital experiences that blur the line between art and technology.\nWith a foundation in both design and engineering, I bring a unique perspective to every project — one that values aesthetic precision as much as technical excellence.',
+  })
+  const [stats, setStats] = useState<StatItem[] | null>(defaultStats)
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -36,28 +40,60 @@ export default function About() {
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0])
 
   useEffect(() => {
-    fetch('/api/sections', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((data) => {
-        const sections = data.sections || []
-        const aboutSection = sections.find((s: any) => s.key === 'about')
-        if (aboutSection) setAbout(aboutSection)
-      })
-      .catch(() => {})
+    const fetchData = () => {
+      fetch('/api/sections', { cache: 'no-store' })
+        .then((r) => r.json())
+        .then((data) => {
+          const sections = data.sections || []
+          const aboutSection = sections.find((s: any) => s.key === 'about')
+          if (aboutSection) setAbout(aboutSection)
+        })
+        .catch(() => {})
 
-    fetch('/api/settings', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((data) => {
-        const settings = data.settings || {}
-        if (settings.about_stats) {
-          try {
-            const parsed = JSON.parse(settings.about_stats)
-            if (Array.isArray(parsed) && parsed.length > 0) setStats(parsed)
-          } catch {}
-        }
-      })
-      .catch(() => {})
+      fetch('/api/settings', { cache: 'no-store' })
+        .then((r) => r.json())
+        .then((data) => {
+          const settings = data.settings || {}
+          if (settings.about_stats) {
+            try {
+              const parsed = JSON.parse(settings.about_stats)
+              if (Array.isArray(parsed) && parsed.length > 0) setStats(parsed)
+            } catch {}
+          } else {
+            setStats(defaultStats)
+          }
+        })
+        .catch(() => {})
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 3000)
+    return () => clearInterval(interval)
   }, [])
+
+  if (!about || !stats) {
+    return (
+      <section
+        ref={sectionRef}
+        id="about"
+        className="relative py-32 md:py-48 section-padding overflow-hidden min-h-screen"
+      >
+        <div className="max-w-7xl mx-auto animate-pulse">
+          <div className="h-4 w-24 bg-black/5 dark:bg-white/5 rounded mb-16" />
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24">
+            <div className="space-y-6">
+              <div className="h-16 w-3/4 bg-black/5 dark:bg-white/5 rounded" />
+              <div className="h-32 w-full bg-black/5 dark:bg-white/5 rounded-2xl" />
+            </div>
+            <div className="space-y-6 lg:pt-24">
+              <div className="h-20 w-full bg-black/5 dark:bg-white/5 rounded" />
+              <div className="h-16 w-2/3 bg-black/5 dark:bg-white/5 rounded" />
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   const headline = about?.title || 'Designing the'
   const subtitle = about?.subtitle || 'future of'
@@ -87,7 +123,7 @@ export default function About() {
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.25 }}
           className="mb-16"
         >
           <span className="inline-flex items-center gap-3 text-xs tracking-[0.3em] uppercase text-gray-500 dark:text-gray-400">
@@ -103,7 +139,7 @@ export default function About() {
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               className="font-display text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-black dark:text-white mb-8"
             >
               {headline}
@@ -115,7 +151,7 @@ export default function About() {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
               className="glass-card p-8 rounded-2xl"
             >
               {paragraphs.map((p, i) => (

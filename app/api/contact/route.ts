@@ -10,9 +10,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
 
-    await prisma.contactMessage.create({
-      data: { name, email, phone: phone || null, message },
-    })
+    try {
+      await prisma.contactMessage.create({
+        data: { name, email, phone: phone || null, message },
+      })
+    } catch (dbErr: any) {
+      if (dbErr?.code === 'P2022') {
+        await prisma.contactMessage.create({
+          data: { name, email, message },
+        })
+      } else {
+        throw dbErr
+      }
+    }
 
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
