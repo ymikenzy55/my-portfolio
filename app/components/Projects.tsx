@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { ExternalLink, ArrowUpRight, Github, Globe } from 'lucide-react'
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
+import { ExternalLink, ArrowUpRight, Github, Globe, X } from 'lucide-react'
 
 interface Project {
   id: string
@@ -19,7 +19,109 @@ interface Project {
 
 const colorPool = ['from-white/5', 'from-white/[0.04]', 'from-white/5']
 
-function TiltCard({ project, index }: { project: Project; index: number }) {
+function ProjectDialog({ project, isOpen, onClose }: { project: Project | null; isOpen: boolean; onClose: () => void }) {
+  if (!project) return null
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[80] flex items-center justify-center p-4 md:p-8"
+          onClick={onClose}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm" />
+
+          {/* Dialog */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-[#0a0a0a] rounded-2xl border border-black/10 dark:border-white/10 shadow-2xl"
+          >
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors"
+            >
+              <X className="w-4 h-4 text-black/60 dark:text-white/60" />
+            </button>
+
+            {/* Image */}
+            {project.imageUrl && project.imageUrl.startsWith('http') ? (
+              <div className="w-full h-48 sm:h-64 md:h-72 overflow-hidden rounded-t-2xl">
+                <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="w-full h-48 sm:h-64 md:h-72 bg-gradient-to-br from-black/5 dark:from-white/5 to-transparent flex items-center justify-center rounded-t-2xl">
+                <span className="font-display text-2xl md:text-3xl text-black/20 dark:text-white/20 tracking-wider">{project.title}</span>
+              </div>
+            )}
+
+            {/* Content */}
+            <div className="p-6 md:p-8 space-y-5">
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] tracking-[0.2em] uppercase text-black/40 dark:text-white/40 px-3 py-1 glass rounded-full">
+                  {project.category}
+                </span>
+              </div>
+
+              <h2 className="font-display text-2xl md:text-3xl font-semibold text-black dark:text-white">{project.title}</h2>
+
+              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed whitespace-pre-line">
+                {project.description.replace(/\\n/g, '\n').replace(/\n+/g, '\n').trim()}
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                {project.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-[10px] tracking-[0.1em] uppercase text-black/30 dark:text-white/30 px-3 py-1 border border-black/10 dark:border-white/10 rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                {project.githubLink && (
+                  <a
+                    href={project.githubLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-black/70 dark:text-white/70 hover:text-black dark:hover:text-white bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-all"
+                  >
+                    <Github className="w-4 h-4" />
+                    Source Code
+                  </a>
+                )}
+                {project.liveLink && (
+                  <a
+                    href={project.liveLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-white dark:text-black bg-black dark:bg-white hover:opacity-90 rounded-lg transition-all"
+                  >
+                    <Globe className="w-4 h-4" />
+                    Live Demo
+                  </a>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+function TiltCard({ project, index, onSelect }: { project: Project; index: number; onSelect: (p: Project) => void }) {
   const cardRef = useRef<HTMLDivElement>(null)
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
   const [isHovered, setIsHovered] = useState(false)
@@ -38,11 +140,7 @@ function TiltCard({ project, index }: { project: Project; index: number }) {
   }
 
   const handleCardClick = () => {
-    if (project.link) {
-      window.open(project.link, '_blank', 'noopener,noreferrer')
-    } else if (project.liveLink) {
-      window.open(project.liveLink, '_blank', 'noopener,noreferrer')
-    }
+    onSelect(project)
   }
 
   return (
@@ -107,15 +205,7 @@ function TiltCard({ project, index }: { project: Project; index: number }) {
                 className="w-36 h-24 sm:w-44 sm:h-28 md:w-64 md:h-40 rounded-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/10 flex items-center justify-center overflow-hidden"
               >
                 {project.imageUrl && project.imageUrl.startsWith('http') ? (
-                  <a
-                    href={project.imageUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full h-full block cursor-pointer"
-                  >
-                    <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
-                  </a>
+                  <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
                 ) : (
                   <span className="font-display text-xl sm:text-2xl md:text-3xl text-black/20 dark:text:white/20 tracking-wider">
                     {project.title}
@@ -187,6 +277,8 @@ export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [filters, setFilters] = useState<string[]>(['All'])
   const [loading, setLoading] = useState(true)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -196,9 +288,19 @@ export default function Projects() {
   const headerY = useTransform(scrollYProgress, [0, 0.3], [100, 0])
   const headerOpacity = useTransform(scrollYProgress, [0, 0.2], [0, 1])
 
+  const openDialog = (project: Project) => {
+    setSelectedProject(project)
+    setDialogOpen(true)
+  }
+
+  const closeDialog = () => {
+    setDialogOpen(false)
+    setTimeout(() => setSelectedProject(null), 250)
+  }
+
   const loadProjects = () => {
     setLoading(true)
-    fetch('/api/projects', { cache: 'no-store' })
+    fetch('/api/projects')
       .then((r) => r.json())
       .then((data) => {
         const list: Project[] = data.projects || []
@@ -317,9 +419,12 @@ export default function Projects() {
             </div>
           ))}
           {!loading && filteredProjects.map((project, index) => (
-            <TiltCard key={project.id} project={project} index={index} />
+            <TiltCard key={project.id} project={project} index={index} onSelect={openDialog} />
           ))}
         </motion.div>
+
+        {/* Project Detail Dialog */}
+        <ProjectDialog project={selectedProject} isOpen={dialogOpen} onClose={closeDialog} />
 
         {/* View all link */}
         <motion.div
