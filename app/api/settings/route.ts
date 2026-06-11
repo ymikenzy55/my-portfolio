@@ -15,7 +15,9 @@ export async function GET() {
     const settings = await prisma.siteSetting.findMany()
     const map: Record<string, string> = {}
     settings.forEach((s) => { map[s.key] = s.value })
-    return NextResponse.json({ settings: map })
+    const res = NextResponse.json({ settings: map })
+    res.headers.set('Cache-Control', 'public, s-maxage=5, stale-while-revalidate=30')
+    return res
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

@@ -107,14 +107,12 @@ export default function About() {
 
   const headline = about?.title || 'Designing the'
   const subtitle = about?.subtitle || 'future of'
-  const trailing = about?.content?.split('\n')[0] || 'digital craft'
-  const paragraphs = about?.content
-    ? about.content.split('\n').filter((p) => p.trim())
-    : [
-        'I am a multidisciplinary creative developer based in Sunyani, Ghana, specializing in software development, UI/UX design, and building premium digital experiences that blend creativity with functionality.',
-        'As a Full Stack Developer, I craft responsive web applications and robust backend solutions. As a UI/UX Designer, I create intuitive interfaces and brand identities. As a Graphic Designer, I deliver compelling visuals that communicate ideas powerfully.',
-        'With a foundation in both design and engineering, I bring a unique perspective to every project — one that values aesthetic precision as much as technical excellence.',
-      ]
+  const rawContent = (about?.content || 'digital craft\nI am a multidisciplinary creative developer based in Sunyani, Ghana, specializing in software development, UI/UX design, and building premium digital experiences that blend creativity with functionality.\nAs a Full Stack Developer, I craft responsive web applications and robust backend solutions. As a UI/UX Designer, I create intuitive interfaces and brand identities. As a Graphic Designer, I deliver compelling visuals that communicate ideas powerfully.\nWith a foundation in both design and engineering, I bring a unique perspective to every project — one that values aesthetic precision as much as technical excellence.')
+    .replace(/San Francisco/gi, 'Sunyani, Ghana')
+    .replace(/based in the Bay Area/gi, 'based in Sunyani, Ghana')
+
+  const trailing = rawContent.split('\n')[0] || 'digital craft'
+  const paragraphs = rawContent.split('\n').filter((p) => p.trim()).slice(1)
 
   return (
     <section

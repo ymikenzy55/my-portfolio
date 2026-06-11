@@ -8,7 +8,9 @@ export async function GET() {
       where: { isActive: true },
       orderBy: { order: 'asc' },
     })
-    return NextResponse.json({ sections })
+    const res = NextResponse.json({ sections })
+    res.headers.set('Cache-Control', 'public, s-maxage=5, stale-while-revalidate=30')
+    return res
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

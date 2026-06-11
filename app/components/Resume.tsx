@@ -37,6 +37,8 @@ const defaultResume: ResumeData = {
 
 export default function Resume() {
   const [resume, setResume] = useState<ResumeData | null>(defaultResume)
+  const [resumeFileUrl, setResumeFileUrl] = useState('')
+  const [resumeFileName, setResumeFileName] = useState('')
 
   useEffect(() => {
     fetch('/api/settings', { cache: 'no-store' })
@@ -51,6 +53,8 @@ export default function Resume() {
         } else {
           setResume(defaultResume)
         }
+        setResumeFileUrl(s.resume_file_url || '')
+        setResumeFileName(s.resume_file_name || '')
       })
       .catch(() => {})
   }, [])
@@ -102,7 +106,8 @@ export default function Resume() {
           className="flex justify-center mb-16"
         >
           <a
-            href="/api/resume"
+            href={resumeFileUrl || '/api/resume'}
+            download={resumeFileName || true}
             className="group inline-flex items-center gap-3 px-8 py-4 bg-black dark:bg-white text-white dark:text-black rounded-full text-sm font-medium tracking-wide hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300"
           >
             <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />

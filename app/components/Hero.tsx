@@ -76,6 +76,11 @@ export default function Hero({ onNavigate }: HeroProps) {
 
   const heroImage = hero?.imageUrl || null
 
+  // Patch legacy content that still says San Francisco
+  const heroContent = (hero?.content || '')
+    .replace(/San Francisco/gi, 'Sunyani, Ghana')
+    .replace(/based in the Bay Area/gi, 'based in Sunyani, Ghana')
+
   return (
     <section className="relative min-h-screen bg-white dark:bg-[#050505] overflow-hidden pt-20">
       <div className="relative max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16 pt-8 pb-16">
@@ -213,7 +218,7 @@ export default function Hero({ onNavigate }: HeroProps) {
         )}
 
         {/* Right side: Description */}
-        {hero?.content && (
+        {heroContent && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -221,7 +226,7 @@ export default function Hero({ onNavigate }: HeroProps) {
             className="absolute right-6 md:right-10 lg:right-16 top-[32%] -translate-y-1/2 hidden md:block max-w-[180px] text-right"
           >
             <p className="text-[10px] tracking-[0.08em] uppercase text-black/60 dark:text-white/60 leading-relaxed">
-              {hero.content}
+              {heroContent}
             </p>
           </motion.div>
         )}
@@ -246,9 +251,9 @@ export default function Hero({ onNavigate }: HeroProps) {
                 <span className="text-[10px] tracking-[0.15em] uppercase">{heroData.location}</span>
               </div>
             </div>
-            {hero?.content && (
+            {heroContent && (
               <p className="text-[10px] tracking-[0.08em] uppercase text-black/60 dark:text-white/60 text-center leading-relaxed px-8">
-                {hero.content}
+                {heroContent}
               </p>
             )}
           </motion.div>
