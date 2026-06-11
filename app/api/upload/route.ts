@@ -30,6 +30,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
+    const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json({ error: 'File too large (max 5MB)' }, { status: 400 })
+    }
+
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
