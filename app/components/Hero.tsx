@@ -29,7 +29,7 @@ interface HeroProps {
 const defaultHero: HeroSection = {
   title: 'EXPLORE MY',
   subtitle: 'PORTFOLIO',
-  content: 'digital craft\nI am a multidisciplinary creative developer based in San Francisco, specializing in crafting premium digital experiences that blur the line between art and technology.',
+  content: 'digital craft\nI am a multidisciplinary creative developer based in Sunyani, Ghana, specializing in software development, UI/UX design, and building premium digital experiences that blend creativity with functionality.',
 }
 
 const defaultHeroData: HeroData = {
@@ -54,7 +54,13 @@ export default function Hero({ onNavigate }: HeroProps) {
         const sections = sectionsData.sections || []
         const heroSection = sections.find((s: any) => s.key === 'hero')
         if (heroSection) {
-          setHero((prev) => ({ ...prev, ...heroSection }))
+          const patched = {
+            ...heroSection,
+            content: (heroSection.content || '')
+              .replace(/San Francisco/gi, 'Sunyani, Ghana')
+              .replace(/based in the Bay Area/gi, 'based in Sunyani, Ghana'),
+          }
+          setHero((prev) => ({ ...prev, ...patched }))
         }
 
         const s = settingsData.settings || {}
