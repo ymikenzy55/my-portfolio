@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import CursorGlow from './components/CursorGlow'
 import ScrollProgress from './components/ScrollProgress'
 import Navigation from './components/Navigation'
@@ -49,74 +48,12 @@ export default function Home() {
 
       <main className="relative">
         <PageTransition isActive={isTransitioning} targetView={targetView} />
-        <AnimatePresence mode="wait">
-          {activeView === 'hero' && (
-            <motion.div
-              key="hero"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <Hero onNavigate={navigateTo} />
-            </motion.div>
-          )}
-          {activeView === 'about' && (
-            <motion.div
-              key="about"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <About />
-            </motion.div>
-          )}
-          {activeView === 'projects' && (
-            <motion.div
-              key="projects"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <Projects />
-            </motion.div>
-          )}
-          {activeView === 'skills' && (
-            <motion.div
-              key="skills"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <Skills />
-            </motion.div>
-          )}
-          {activeView === 'contact' && (
-            <motion.div
-              key="contact"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <Contact />
-            </motion.div>
-          )}
-          {activeView === 'resume' && (
-            <motion.div
-              key="resume"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <Resume />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {activeView === 'hero' && <Hero onNavigate={navigateTo} />}
+        {activeView === 'about' && <About />}
+        {activeView === 'projects' && <Projects />}
+        {activeView === 'skills' && <Skills />}
+        {activeView === 'contact' && <Contact />}
+        {activeView === 'resume' && <Resume />}
       </main>
 
       {activeView !== 'hero' && !isTransitioning && <Footer />}
