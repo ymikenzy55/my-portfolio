@@ -298,29 +298,41 @@ export default function Projects() {
     setTimeout(() => setSelectedProject(null), 250)
   }
 
-  const loadProjects = () => {
-    setLoading(true)
+  const loadProjects = (silent = false) => {
+    if (!silent) setLoading(true)
     fetch('/api/projects')
       .then((r) => r.json())
       .then((data) => {
         const list: Project[] = data.projects || []
-        setProjects(list)
-        const cats = Array.from(
-          new Set(list.map((p: Project) => p.category?.trim()).filter(Boolean))
-        )
-        setFilters(['All', ...cats])
-        setLoading(false)
+        setProjects((prev) => {
+          // Only update if data actually changed to avoid re-renders
+          if (prev.length === list.length && prev.every((p, i) => p.id === list[i]?.id)) {
+            return prev
+          }
+          return list
+        })
+        setFilters((prev) => {
+          const cats = Array.from(
+            new Set(list.map((p: Project) => p.category?.trim()).filter(Boolean))
+          )
+          const next = ['All', ...cats]
+          if (JSON.stringify(prev) === JSON.stringify(next)) return prev
+          return next
+        })
+        if (!silent) setLoading(false)
       })
       .catch(() => {
-        setProjects([])
-        setFilters(['All'])
-        setLoading(false)
+        if (!silent) {
+          setProjects([])
+          setFilters(['All'])
+          setLoading(false)
+        }
       })
   }
 
   useEffect(() => {
     loadProjects()
-    const interval = setInterval(loadProjects, 3000)
+    const interval = setInterval(() => loadProjects(true), 5000)
     return () => clearInterval(interval)
   }, [])
 
