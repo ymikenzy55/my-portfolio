@@ -105,14 +105,20 @@ export default function Resume() {
           transition={{ duration: 0.3, delay: 0.05 }}
           className="flex justify-center mb-16"
         >
-          <a
-            href={resumeFileUrl || '/api/resume'}
-            download={resumeFileName || true}
+          <button
+            onClick={() => {
+              const link = document.createElement('a')
+              link.href = `/api/resume?t=${Date.now()}`
+              link.download = resumeFileName || 'CV.pdf'
+              document.body.appendChild(link)
+              link.click()
+              document.body.removeChild(link)
+            }}
             className="group inline-flex items-center gap-3 px-8 py-4 bg-black dark:bg-white text-white dark:text-black rounded-full text-sm font-medium tracking-wide hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300"
           >
             <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
             Download CV
-          </a>
+          </button>
         </motion.div>
 
         <div className="grid md:grid-cols-[1fr_2fr] gap-12">

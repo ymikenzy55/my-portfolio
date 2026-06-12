@@ -367,7 +367,7 @@ export default function ContentAdmin() {
                   <input type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} className="sr-only" />
                 </label>
                 {resumeFileUrl && (
-                  <a href="/api/resume" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate max-w-[300px]">
+                  <a href={`/api/resume?t=${Date.now()}`} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate max-w-[300px]">
                     {resumeFileName || resumeFileUrl.split('/').pop()}
                   </a>
                 )}
